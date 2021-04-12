@@ -1,0 +1,7 @@
+<tool_dependency>
+     <package name="biopython"></package>
+    <package name="scikit-learn" ></package>
+    <package name="numpy"></package>
+    <package name="pandas"></package>
+    <package name="scikit-bio"></package>
+</tool_dependency>

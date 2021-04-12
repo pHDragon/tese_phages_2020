@@ -1,0 +1,93 @@
+<tool id="run_galaxy" name="PhageHostPrediction" version="0.1.0" python_template_version="3.5">
+    <description>prediction of phage-bacteria interactions</description>
+    <requirements>
+      <requirement type="package">biopython</requirement>
+      <requirement type="package">scikit-learn</requirement>
+      <requirement type="package">numpy</requirement>
+      <requirement type="package">pandas</requirement>
+      <requirement type="package">scikit-bio</requirement>
+    </requirements>
+    <command detect_errors="exit_code" interpreter="python3"><![CDATA[
+        $__tool_directory__/run_galaxy.py
+          $input_phage.phage_input_type $input_phage.phages
+
+          $input_bact.bact_input_type $input_bact.bacts
+
+          $adv.run_interpro $adv.ml_model
+
+    ]]></command>
+    <inputs>
+      <conditional name="input_phage">
+        <param type="select" name="phage_input_type" label='Phage input:'>
+          <option value="ID" selected="true">NCBI IDs (comma separated)</option>
+          <option value="seq_file" selected="false">Sequence fasta file (only one organism)</option>
+        </param>
+        <when value="ID">
+          <param type="text" name="phages" label='Phage IDs'/>
+        </when>
+        <when value="seq_file">
+          <param type="data" name="phages" label='Phage fasta file' format="fasta"/>
+        </when>
+      </conditional>
+
+      <conditional name="input_bact">
+        <param type="select" name="bact_input_type" label='Bacteria input:'>
+          <option value="ID" selected="true">NCBI IDs (comma separated)</option>
+          <option value="seq_file" selected="false">Sequence fasta file (only one organism)</option>
+        </param>
+        <when value="ID">
+          <param type="text" name="bacts" label='Bacteria IDs'/>
+        </when>
+        <when value="seq_file">
+          <param type="data" name="bacts" label='Bacteria fasta file' format="fasta"/>
+        </when>
+      </conditional>
+
+      <section name='adv' lable="Advanced options" title='Advanced Options' expanded='false'>
+        <param type="boolean" name="run_interpro" label='Perform interpro search' checked="false" truevalue="True" falsevalue="False" />
+        <param type="select" name="ml_model" label="Machine learning model">
+          <option value="RandomForests" selected="yes">Random Forests</option>
+          <option value="SVM">SVM</option>
+        </param>
+      </section>
+    </inputs>
+    <outputs>
+      <data name="output1" format="tabular" from_work_dir="output.tsv" />
+    </outputs>
+    <help>
+
+PhageHostPrediction
+===================
+
+Predict interactions between phages and bacterial strains.
+
+PhageHostPrediction is a python script that predicts phage-host interactions for *E. coli*, *K. pneumoniae* and *A. baumannii* phages, using supervised machine learning models. The models were built from a dataset containing 252 features and 23 987 entries with balanced outputs of 'Yes' and 'No'. The positive cases of interaction predicted are described in the file "NCBI_Phage_Bacteria_Data.csv", contained within this tool, while the negative were randomly assigned by pairing phages with bacteria of different species.
+
+The prediction resorts to complete host proteome and to phage tail proteins, that are inferred within the tool. This inference is made with a locally created database of phage protein functions, available in the file "phagesProteins.json". Unknown proteins are predicted against this database. To help with this prediction, the use of InterProScan is made optional.
+
+**Inputs:**
+
+* phage/bacteria genome format: ID vs fasta; 
+* ID: must be a GenBank ID, with the proteome described;
+* fasta file: must contain the whole proteome of the organism;
+* machine learning model: random forests have better predictive power, while SVM can be slightly faster to run;
+* interpro search: should predict tails with higher confidence, but it significantly increases time to run.
+
+**Outputs:**
+this tool outputs a tabular file in which phage-host pairs are present in the first column and the prediction result in the second.
+
+**Requirements:**
+
+* Biopython
+* Scikit-learn 
+* Numpy
+* Pandas 
+* Scikit-bio
+* BLAST_ - must be installed locally and available globally as an environment variable
+* InterProScan_ (optional) - must be installed locally and available globally as an environment variable
+
+.. _BLAST: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
+.. _InterProScan: http://www.ebi.ac.uk/interpro/download/
+        
+    </help>
+</tool>
